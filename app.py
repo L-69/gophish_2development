@@ -7,8 +7,8 @@ import io,requests,json
 app = Flask(__name__)
 
 # 配置 API 相关信息
-API_KEY = "bd870f3e5dd55d951807e2e3d6d5644e4d0db554498815a62b0da09957d017ab"  # 你的 Gophish API 密钥
-GOPHISH_URL = "https://124.222.195.27:8891/api/campaigns/"
+API_KEY = "bd870f3e5dd55d951807e2e554498815a62b0da09957d017ab"  # 你的 Gophish API 密钥
+GOPHISH_URL = "https://124.322.15.27:8891/api/campaigns/"
 # 关闭 SSL 证书验证（如果你的 Gophish 运行在自签名证书下）
 VERIFY_SSL = False  
 
