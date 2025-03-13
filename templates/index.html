@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>基于Gophish的钓鱼渗透测试平台</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .main {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 1rem;
+            padding: 2rem;
+        }
+        .section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .footer {
+            padding: 2rem;
+            background: #34495e;
+            color: white;
+        }
+        .chart-container {
+            height: 300px;
+            background: white;
+            margin: 1rem 0;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #campaign-stats {
+            height: 400px;  /* 固定高度，可以根据需求调整 */
+            overflow-y: auto;  /* 启用垂直滚动 */
+            padding-right: 10px;  /* 避免滚动条遮挡内容 */
+        }
+        .campaign-item {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>基于Gophish的钓鱼渗透测试平台</h1>
+    </div>
+
+    <div class="main">
+        <div class="section">
+            <h2>Campaign统计</h2>
+            <h4>总Campaign数: {{ campaigns_num }}</h4>
+            <div id="campaign-stats">
+                <!-- 显示总Campaign数 -->
+                
+                <div class="campaign-list">
+                    {% for campaign in campaigns %}
+                        <div class="campaign-item">
+                            
+                            <p>任务名字：{{ campaign.name }}</p>
+                            <p>模板名字: {{ campaign.template.name }}</p>
+                            <p>钓鱼页面: {{ campaign.page.name }}</p>
+                            <p>时间线: {{ campaign.timeline }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>配置</h2>
+            <form action="/create_campaign" method="POST">
+              <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Campaign name</label>
+                <input type="text" name="campaign_name" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;" required>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">campaign template name</label>
+                <input type="text" name="campaign_template_name" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;" required>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">campaign url</label>
+                <input type="text" name="campaign_url" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;" required>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">campaign landing page</label>
+                <input type="text" name="campaign_landing_page" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;" required>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">campaign smtp</label>
+                <input type="text" name="campaign_smtp" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;" required>
+              </div>
+              <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">campaign groups</label>
+                <input type="text" name="campaign_groups" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;" required>
+              </div>
+              <!-- 定时选项 -->
+              <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">执行时间</label>
+                    <input type="datetime-local" name="execution_time" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+              <button type="submit">提交</button>
+            </form>
+          </div>
+
+        <div class="section">
+            <h2>执行状态</h2>
+            <!-- 执行状态将在这个 div 中显示 -->
+            <div id="execution-status">{{ status_message }}</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="chart-container" id="chart"></div>
+        <button onclick="generateReport()" style="margin-right: 1rem;">生成报告</button>
+        <button onclick="window.location.href='/chart'">查看图表</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 初始化图表
+        const ctx = document.getElementById('chart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Campaigns',
+                    data: [],
+                    borderColor: '#3498db',
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // 获取campaign数据
+        async function loadCampaignData() {
+            const response = await fetch('/campaign-data');
+            const data = await response.json();
+            
+            // 更新统计数据
+            document.getElementById('campaign-stats').innerHTML = `
+                <h3>总Campaign数: ${data.total_campaigns}</h3>
+                <ul>
+                    ${data.campaigns.map(c => `
+                        <li>ID: ${c.id} - 时间: ${c.time} - 状态: ${c.status}</li>
+                    `).join('')}
+                </ul>
+            `;
+
+            // 更新图表
+            chart.data.labels = data.campaigns.map(c => c.time);
+            chart.data.datasets[0].data = data.campaigns.map((c, i) => i + 1);
+            chart.update();
+        }
+
+        // 生成报告
+        async function generateReport() {
+            const response = await fetch('/generate-report', {
+                method: 'POST'
+            });
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'report.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // 页面加载时获取数据
+        window.onload = loadCampaignData;
+    </script>
+</body>
+</html>

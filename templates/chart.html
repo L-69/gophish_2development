@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Chart</title>
+    <!-- 引入Chart.js库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .status-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ddd;
+            font-size: 20px;
+            color: white;
+            position: relative;
+        }
+
+        .status-circle span {
+            font-size: 20px;
+        }
+
+        .status-text {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        /* Color coding for each status */
+        .Campaign-Created { background-color: #FF5722; }
+        .Email-Sent { background-color: #4CAF50; }
+        .Email-Opened { background-color: #FF9800; }
+        .Clicked-Link { background-color: #2196F3; }
+        .Submitted-Data { background-color: #9C27B0; }
+        .Email-Reported { background-color: #f44336; }
+        
+        .timewise-chart {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        #timelineChart {
+            width: 100%;
+            height: 400px;
+        }
+        
+        .home-button {
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .home-button:hover {
+            background-color: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+    <h1>Status Overview</h1>
+    
+    
+    
+    <div class="chart-container">
+        <!-- Generate a circle for each status -->
+        {% for status, count in total_status_count.items() %}
+        <div class="status-item">
+            <div class="status-circle {{ status|replace(' ', '-') }}">
+                <span>{{ count }}</span>
+            </div>
+            <div class="status-text">{{ status }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    <br>
+    <div class="timewise-chart">
+        <h2>Timewise Status Overview</h2>
+        <canvas id="timelineChart"></canvas>
+    </div>
+    <!-- 添加返回首页按钮 -->
+    <button class="home-button" onclick="window.location.href='/'">返回首页</button>
+    
+    <script>
+        // Prepare data for the timewise chart from the backend
+        var timelineData = {{ status_count_by_time|tojson }};
+        
+        // Prepare labels (time points) and datasets for the chart
+        var timeLabels = [];
+        var datasets = [];
+
+        // Define all possible statuses to create dataset for each
+        var statuses = ['Email Sent', 'Email Opened', 'Clicked Link', 'Submitted Data', 'Email Reported', 'Campaign Created'];
+
+        // Prepare an empty dataset for each status
+        statuses.forEach(function(status) {
+            datasets.push({
+                label: status,
+                data: [],
+                borderColor: getColorForStatus(status),
+                backgroundColor: getColorForStatus(status),
+                fill: false,
+                tension: 0.1,
+                pointRadius: 5
+            });
+        });
+
+        // Iterate over each time point and populate datasets
+        for (var time in timelineData) {
+            timeLabels.push(time);
+            statuses.forEach(function(status, index) {
+                datasets[index].data.push(timelineData[time][status] || 0);
+            });
+        }
+
+        // Initialize Chart.js with the prepared data
+        var ctx = document.getElementById('timelineChart').getContext('2d');
+        var timelineChart = new Chart(ctx, {
+            type: 'line',  // Line chart to show points for each time
+            data: {
+                labels: timeLabels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Event Count'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Helper function to get color for each status
+        function getColorForStatus(status) {
+            switch(status) {
+                case 'Email Sent': return '#4CAF50';
+                case 'Email Opened': return '#FF9800';
+                case 'Clicked Link': return '#2196F3';
+                case 'Submitted Data': return '#9C27B0';
+                case 'Email Reported': return '#f44336';
+                case 'Campaign Created': return '#FF5722';
+                default: return '#000';
+            }
+        }
+    </script>
+</body>
+</html>

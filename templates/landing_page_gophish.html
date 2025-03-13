@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大学生毕业论文（设计）管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+        }
+        
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+        
+        .left-section {
+            width: 60%;
+            background: linear-gradient(to right, #e0e8f5, #f5f7fa);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .school-logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        
+        .school-name {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+
+        
+        .system-title {
+            font-size: 32px;
+            color: #4a7aff;
+            margin-bottom: 40px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .announcement-box {
+            width: 80%;
+            background-color: rgb(226, 233, 236);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .announcement-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .announcement-title {
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .more-link {
+            color: #4a7aff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .announcement-content {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .right-section {
+            width: 40%;
+            background: linear-gradient(to right, #e0e8f5, #f5f7fa);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .top-links {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .wechat-notice, .mini-program {
+            color: #4a7aff;
+            text-decoration: none;
+            font-size: 14px;
+            margin-left: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            background-color: #4a7aff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .login-tabs {
+            display: flex;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+        
+        .login-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .login-tab.active {
+            color: #4a7aff;
+            border-bottom: 2px solid #4a7aff;
+        }
+        
+        .login-form {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .role-selection {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .role-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            background-color: #f5f7fa;
+            border: 1px solid #e0e0e0;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .role-btn.active {
+            background-color: white;
+            border-color: #4a7aff;
+            color: #4a7aff;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .form-control:focus {
+            border-color: #4a7aff;
+        }
+        
+        .agreement {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #999;
+        }
+        
+        .checkbox {
+            width: 16px;
+            height: 16px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        
+        .agreement a {
+            color: #4a7aff;
+            text-decoration: none;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4a7aff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .forgot-password {
+            margin-top: 10px;
+            text-align: left;
+        }
+        
+        .forgot-password a {
+            color: #4a7aff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+  
+        
+        .email {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px 0;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .footer-content {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-section">
+            <div style="display: flex; align-items: center; position: relative; top: -60px;transform: translateX(-200px);">
+                <img src="https://124.222.195.27:8891/logo.png" alt="桂林电子科技大学" class="school-logo" style="width: 100px; height: 100px; margin-right: 30px;">
+                <div class="school-name" style="display: inline-block; background: #d1daf3;width: 250px; padding: 5px 10px; transform: skewX(-20deg) translateX(-10 px); color: #121212; font-weight: bold;">
+                    桂林电子科技大学
+                </div>
+            </div>
+            <div class="system-title" style="position: relative; top: -70px;transform: translateX(-30px);font-weight:30000; font-family:Arial, Helvetica, sans-serif;font-size: 48px;">大学生毕业论文（设计）管理系统</div>
+            <div class="announcement-box" style="position: relative; top: -70px;transform: translateX(-50px); padding-top: 20px; padding-bottom: 200px;">
+                <div class="announcement-header">
+                    <div class="announcement-title" style="font-weight: bold; font-size: 20px;">通知公告</div>
+                    <div class="announcement-title" style="font-size: 15px; transform: translateX(-200px)">通知公告</div>
+                    <a href="#" class="more-link">more >></a>
+                </div>
+                <div class="announcement-content">该公告类型下暂未发布告内容</div>
+            </div>
+        </div>
+        <div class="right-section" style="position: relative; top: -50px;">
+            <div class="top-links">
+                <a href="#" class="wechat-notice">
+                    <div class="icon">W</div> 微信消息提醒
+                </a>
+                <a href="#" class="mini-program">
+                    <div class="icon">P</div> 小程序
+                </a>
+            </div>
+            <div class="login-tabs">
+                <div class="login-tab active">账号密码登录</div>
+                <div class="login-tab">已绑定微信登录</div>
+            </div>
+            <form class="login-form" action="" method="POST">
+                <div class="role-selection">
+                    <div class="role-btn">管理员</div>
+                    <div class="role-btn active">教师</div>
+                    <div class="role-btn">学生</div>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="请输入用户名" name="username">
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" placeholder="输入密码" name="password">
+                </div>
+                <div class="agreement">
+                    <input type="checkbox" class="checkbox">
+                    <span>我已阅读<a href="#">《隐私政策》</a>和<a href="#">《使用协议》</a></span>
+                </div>
+                <button class="login-btn" type="submit">登录</button>
+                <div class="forgot-password">
+                    <a href="#">忘记密码？</a>
+                </div>
+            </form>
+            <div class="qr-code">
+                <img src="https://124.222.195.27:8891/wechat.png" alt="二维码" style="width: 100px; height: 100px;">
+            </div>
+            <div class="qr-code-text">扫一扫关注我们</div>
+            <div class="email">gaojiao@cnki.net</div>
+        </div>
+    </div>
+    <div class="footer" style="display: flex; align-items: center;">
+        <!-- 图片占据两行 -->
+        <img src="https://124.222.195.27:8891/zhiwang.png" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+    
+        <!-- 文字部分 -->
+        <div style="display: flex; flex-direction: column; transform: translateX(10px);">
+            <div class="footer-content">
+                京ICP证040431号 网络出版服务许可证京)字416号 经营性网站备案信息 京公网安备11010802020460号
+            </div>
+            <div class="footer-content">
+                © 2016-2023 中国知网（CNKI）《中国学术期刊（光盘版）》电子杂志社有限公司
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 为角色按钮添加点击事件
+        const roleButtons = document.querySelectorAll('.role-btn');
+        roleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // 移除所有按钮的active类
+                roleButtons.forEach(btn => btn.classList.remove('active'));
+                // 为当前点击的按钮添加active类
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
