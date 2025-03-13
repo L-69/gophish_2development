@@ -128,8 +128,28 @@
     </div>
 
     <div class="footer">
-        <div class="chart-container" id="chart"></div>
-        <button onclick="generateReport()" style="margin-right: 1rem;">生成报告</button>
+        <h2>生成报告</h2>
+        
+        <!-- 输入框和生成报告按钮 -->
+        <div class="footer-form">
+            <form id="report-form" action="/generate-report" method="POST">
+                <label for="campaign_name">Campaign 名称</label>
+                <input type="text" id="campaign_name" name="campaign_name" required>
+                
+                <label for="campaign_id">Campaign ID</label>
+                <input type="text" id="campaign_id" name="campaign_id" required>
+                
+                <label for="report_format">报告格式</label>
+                <select id="report_format" name="report_format" required>
+                    <option value="excel">Excel</option>
+                    <option value="word">Word</option>
+                    <option value="quick">Quick</option>
+                </select>
+                
+                <button type="submit" onclick="generateReport()">生成报告</button>
+            </form>
+        </div>
+
         <button onclick="window.location.href='/chart'">查看图表</button>
     </div>
 
@@ -176,22 +196,65 @@
         }
 
         // 生成报告
-        async function generateReport() {
-            const response = await fetch('/generate-report', {
-                method: 'POST'
+        function generateReport() {
+            var form = document.getElementById('report-form');
+            var campaignName = form.elements['campaign_name'].value;
+            var campaignId = form.elements['campaign_id'].value;
+            var reportFormat = form.elements['report_format'].value;
+        
+            // 确保 report_format 已选择
+            if (!reportFormat) {
+                alert('请选一个有效的报告格式');
+                return;
+            }
+        
+            // 向后端提交数据
+            var data = new FormData();
+            data.append('campaign_name', campaignName);
+            data.append('campaign_id', campaignId);
+            data.append('report_format', reportFormat);
+        
+            fetch('/generate-report', {
+                method: 'POST',
+                body: data
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                // 创建下载链接
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'report.' + reportFormat;
+                link.click();
+            })
+            .catch(error => {
+                console.error('Error generating report:', error);
             });
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'report.pdf';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
         }
 
         // 页面加载时获取数据
         window.onload = loadCampaignData;
+    </script>
+    <script>
+        // 生成报告的请求
+        async function generateReport() {
+            const response = await fetch('/generate-report', {
+                method: 'POST'
+            });
+            
+            // 确保请求成功
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'report.docx';  // 可以根据需要更改文件名
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } else {
+                alert('报告生成失败，请稍后重试！');
+            }
+        }
     </script>
 </body>
 </html>

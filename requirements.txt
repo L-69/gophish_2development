@@ -1,0 +1,8 @@
+python-docx
+requests
+gophish
+configparser
+python-dateutil
+user-agents
+click
+xlsxwriter

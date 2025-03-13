@@ -1,13 +1,14 @@
 # app.py
-from flask import Flask, render_template, request, g
+import subprocess,os
+from flask import Flask, render_template, request, g, send_file,jsonify
 from datetime import datetime
 import io,requests,json
 
 app = Flask(__name__)
 
 # 配置 API 相关信息
-API_KEY = "bd870f3e5dd55d951807e2e3d6d5644e4d0db554498815a62b0da09957d017ac"  # 你的 Gophish API 密钥
-GOPHISH_URL = "https://124.232.195.21:8891/api/campaigns/"
+API_KEY = "bd870f3e5dd55d951807e2e3d6d5644e4d0db554498815a62b0da09957d017ab"  # 你的 Gophish API 密钥
+GOPHISH_URL = "https://124.222.195.27:8891/api/campaigns/"
 # 关闭 SSL 证书验证（如果你的 Gophish 运行在自签名证书下）
 VERIFY_SSL = False  
 
@@ -125,6 +126,33 @@ def get_chart():
     return render_template('chart.html', 
                            status_count_by_time=status_count_by_time, 
                            total_status_count=total_status_count)
+
+@app.route('/generate-report', methods=['POST'])
+def generate_report():
+    campaign_name = request.form.get('campaign_name')
+    campaign_id = request.form.get('campaign_id')
+    report_format = request.form.get('report_format')
+    print(campaign_id,campaign_name,report_format)
+
+    if not campaign_name or not campaign_id or not report_format:
+        return jsonify({"error": "缺少必要参数"}), 400
+    
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    goreport_path = os.path.join(current_dir, "GoReport.py")
+    print(goreport_path)
+    command = f"python3 {goreport_path} --id {campaign_id} --format {report_format}"
+
+    result = subprocess.run(command, shell=True)
+    if report_format == "word":
+        report_format = "docx"  # 修正文件扩展名
+    elif report_format == "pdf":
+        report_format = "pdf"  # 修正文件扩展名
+    else:
+        report_format = "excel"  # 修正文件扩展名
+    report_file_name = f"Gophish Results for {campaign_name}.{report_format}"
+
+    return send_file(report_file_name, as_attachment=True)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002, debug=True)
