@@ -7,3 +7,4 @@ user-agents
 click
 xlsxwriter
 flask
+re

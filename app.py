@@ -1,5 +1,6 @@
 # app.py
-import subprocess,os
+import subprocess,os,re
+from collections import defaultdict
 from flask import Flask, render_template, request, g, send_file,jsonify
 from datetime import datetime
 import io,requests,json
@@ -7,8 +8,8 @@ import io,requests,json
 app = Flask(__name__)
 
 # 配置 API 相关信息
-API_KEY = "bd870f3e5dd55d951807e2e554498815a62b0da09957d017ab"  # 你的 Gophish API 密钥
-GOPHISH_URL = "https://124.322.15.27:8891/api/campaigns/"
+API_KEY = "bd870f3e5dd55d951807e2e3d6d5644e4d0db554498815a62b0da09957d017"  # 你的 Gophish API 密钥
+GOPHISH_URL = "https://14.22.95.27:8891/api/campaigns/"
 # 关闭 SSL 证书验证（如果你的 Gophish 运行在自签名证书下）
 VERIFY_SSL = False  
 
@@ -36,6 +37,7 @@ def get_campaigns():
 def index():
     campaigns_num = len(g.campaigns)
     return render_template('index.html', campaigns=g.campaigns, campaigns_num=campaigns_num)
+
 @app.route('/create_campaign', methods=['POST'])
 def create_campaign():
     # 从表单获取数据
@@ -77,6 +79,30 @@ def create_campaign():
     # 返回 HTML 页面并带上状态信息
     return render_template('index.html', status_message=status_message, campaigns=g.campaigns, campaigns_num=len(g.campaigns))
 
+def extract_browser_info(details_string):
+    # 尝试提取浏览器信息
+    if not details_string:
+        return "Unknown"
+    
+    # 常见浏览器的正则表达式匹配模式
+    browser_patterns = {
+        'Chrome': r'Chrome\/[\d\.]+',
+        'Firefox': r'Firefox\/[\d\.]+',
+        'Safari': r'Safari\/[\d\.]+',
+        'Edge': r'Edge\/[\d\.]+',
+        'IE': r'MSIE|Trident',
+        'Opera': r'Opera\/[\d\.]+|OPR\/[\d\.]+',
+    }
+    
+    for browser, pattern in browser_patterns.items():
+        if re.search(pattern, details_string):
+            return browser
+    
+    # 如果没有找到匹配的浏览器，检查是否包含移动设备信息
+    if re.search(r'Mobile|Android|iPhone|iPad', details_string):
+        return "Mobile"
+    
+    return "Other"
 
 @app.route('/chart')
 def get_chart():
@@ -95,8 +121,10 @@ def get_chart():
         'Clicked Link': 0,
         'Submitted Data': 0,
         'Email Reported': 0
-        
     }
+    
+    # 添加浏览器统计信息
+    browser_stats = {}
     
     for campaign in g.campaigns:
         for event in campaign['timeline']:
@@ -116,16 +144,30 @@ def get_chart():
                     'Clicked Link': 0,
                     'Submitted Data': 0,
                     'Email Reported': 0
-                    
                 }
             
             # 更新该时间点的状态计数
             status_count_by_time[event_time][event_message] += 1
             total_status_count[event_message] += 1
+            
+            # 提取浏览器信息并更新浏览器统计（主要从Clicked Link和Submitted Data事件中提取）
+            if event_message in ['Clicked Link', 'Submitted Data', 'Email Opened'] and 'details' in event:
+                browser = extract_browser_info(event['details'])
+                if browser in browser_stats:
+                    browser_stats[browser] += 1
+                else:
+                    browser_stats[browser] = 1
+    
+    # 如果没有浏览器数据，添加一些默认值以避免图表出错
+    if not browser_stats:
+        browser_stats = {
+            "Unknown": 1
+        }
 
     return render_template('chart.html', 
                            status_count_by_time=status_count_by_time, 
-                           total_status_count=total_status_count)
+                           total_status_count=total_status_count,
+                           browser_stats=browser_stats)
 
 @app.route('/generate-report', methods=['POST'])
 def generate_report():

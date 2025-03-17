@@ -52,7 +52,7 @@
         .Submitted-Data { background-color: #9C27B0; }
         .Email-Reported { background-color: #f44336; }
         
-        .timewise-chart {
+        .chart-section {
             margin-top: 40px;
             width: 100%;
             max-width: 800px;
@@ -60,9 +60,11 @@
             margin-right: auto;
         }
         
-        #timelineChart {
-            width: 100%;
+        .chart-container-wrapper {
+            position: relative;
             height: 400px;
+            width: 100%;
+            margin-bottom: 40px;
         }
         
         .home-button {
@@ -80,12 +82,56 @@
         .home-button:hover {
             background-color: #0b7dda;
         }
+        
+        .filter-controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-button {
+            padding: 8px 15px;
+            background-color: #f1f1f1;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .filter-button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .filter-button.active {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .chart-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            margin: 40px 0 20px 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .browser-chart-container {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
     <h1>Status Overview</h1>
-    
-    
     
     <div class="chart-container">
         <!-- Generate a circle for each status -->
@@ -98,17 +144,40 @@
         </div>
         {% endfor %}
     </div>
-    <br>
-    <div class="timewise-chart">
-        <h2>Timewise Status Overview</h2>
-        <canvas id="timelineChart"></canvas>
+    
+    <h2 class="section-title">Timeline Analysis</h2>
+    
+    <div class="filter-controls">
+        <span style="margin-right: 10px; font-weight: bold;">Filter Timeline:</span>
+        <button class="filter-button active" data-status="all">All</button>
+        {% for status in total_status_count.keys() %}
+        <button class="filter-button" data-status="{{ status|replace(' ', '-') }}">{{ status }}</button>
+        {% endfor %}
     </div>
+    
+    <div class="chart-section">
+        <h3 class="chart-title">Timewise Status Overview</h3>
+        <div class="chart-container-wrapper">
+            <canvas id="timelineChart"></canvas>
+        </div>
+    </div>
+    
+    <h2 class="section-title">Browser Distribution</h2>
+    
+    <div class="chart-section">
+        <h3 class="chart-title">Browser Usage</h3>
+        <div class="browser-chart-container">
+            <canvas id="browserChart"></canvas>
+        </div>
+    </div>
+    
     <!-- 添加返回首页按钮 -->
     <button class="home-button" onclick="window.location.href='/'">返回首页</button>
     
     <script>
         // Prepare data for the timewise chart from the backend
         var timelineData = {{ status_count_by_time|tojson }};
+        var browserData = {{ browser_stats|tojson }};
         
         // Prepare labels (time points) and datasets for the chart
         var timeLabels = [];
@@ -148,6 +217,7 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 scales: {
                     x: {
                         title: {
@@ -165,6 +235,42 @@
                 }
             }
         });
+        
+        // Initialize Browser Pie Chart
+        var browserCtx = document.getElementById('browserChart').getContext('2d');
+        var browserChart = new Chart(browserCtx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(browserData),
+                datasets: [{
+                    data: Object.values(browserData),
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                        '#FF9F40', '#8AC249', '#EA80FC', '#00BCD4', '#FF5722'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                var value = context.raw || 0;
+                                var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                var percentage = Math.round((value / total) * 100);
+                                return label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
 
         // Helper function to get color for each status
         function getColorForStatus(status) {
@@ -178,6 +284,35 @@
                 default: return '#000';
             }
         }
+        
+        // Filter functionality - only applies to timeline chart
+        document.querySelectorAll('.filter-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.filter-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                const selectedStatus = this.getAttribute('data-status');
+                
+                // Update timeline chart visibility
+                if(selectedStatus === 'all') {
+                    statuses.forEach((status, index) => {
+                        timelineChart.data.datasets[index].hidden = false;
+                    });
+                } else {
+                    statuses.forEach((status, index) => {
+                        const formattedStatus = status.replace(' ', '-');
+                        timelineChart.data.datasets[index].hidden = (formattedStatus !== selectedStatus);
+                    });
+                }
+                
+                timelineChart.update();
+            });
+        });
     </script>
 </body>
 </html>
