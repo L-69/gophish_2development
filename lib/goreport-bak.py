@@ -1555,23 +1555,6 @@ Individuals Who Submitted: {self.total_unique_submitted}
             cell.text = f"{value}"
             counter += 1
 
-        # 添加反钓鱼措施与建议部分
-        d.add_heading("反钓鱼措施与建议", 1)
-        p = d.add_paragraph("主要发现与问题")
-        p.add_run("""
-1. 安全意识差异：部分学生收到邮件后未核实发件人，直接点击并输入信息。
-2. 邮件欺骗度：伪造邮件使用了学校 Logo、相似域名，迷惑性较强。
-3. 常见误区：学生对链接域名缺乏辨别，不检查 HTTPS 证书或登录提醒。
-""")
-
-        p = d.add_paragraph("建议与对策")
-        p.add_run("""
-1. 提高警惕：看到与学校相关的重要邮件时，应先确认域名或向老师同学求证；
-2. 检查链接：鼠标悬停查看链接是否为学校官方域名，必要时通过学校官网登录；
-3. 不随意提交账号密码：遇到要求输入重要信息的网站时，先核实其真实性；
-4. 养成良好安全习惯：定期更换密码，开启二次验证（若学校系统支持），不重复使用同一密码。
-""")
-
         # Finalize document and save it as the value of output_word_report
         d.save(f"{self.output_word_report}")
         print(f"[+] Done! Check \"{self.output_word_report}\" for your results.")
