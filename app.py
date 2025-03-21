@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 # 配置 API 相关信息
 API_KEY = "bd870f3e5dd55d951807e2e3d6d5644e4d0db554498815a62b0da09957d017"  # 你的 Gophish API 密钥
-GOPHISH_URL = "https://14.22.15.2:8891/api/campaigns/"
+GOPHISH_URL = "https://14.22.15.2:8891/api/campaign/"
 # 关闭 SSL 证书验证（如果你的 Gophish 运行在自签名证书下）
 VERIFY_SSL = False  
 
@@ -38,7 +38,7 @@ def index():
     campaigns_num = len(g.campaigns)
     return render_template('index.html', campaigns=g.campaigns, campaigns_num=campaigns_num)
 
-@app.route('/create_campaign', methods=['POST'])
+@app.route('/create_campaigns', methods=['POST'])
 def create_campaign():
     # 从表单获取数据
     campaign_name = request.form.get('campaign_name')
